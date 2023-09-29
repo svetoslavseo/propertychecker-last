@@ -23,24 +23,19 @@ def get_commute_and_stations(start_postcode, end_postcode, api_key):
     if not start_lat or not start_lng:
         return "Unable to determine location for start postcode", [], None, None
 
-    # Extracting transportation modes
+    # Get commute time and transportation modes
+    commute_url = f"https://maps.googleapis.com/maps/api/directions/json?origin={start_lat},{start_lng}&destination={end_postcode}&mode=transit&key={api_key}"
+    commute_response = requests.get(commute_url).json()
+
     transit_modes = []
     if commute_response['status'] == 'OK':
+        commute_time = commute_response['routes'][0]['legs'][0]['duration']['text']
         steps = commute_response['routes'][0]['legs'][0]['steps']
         for step in steps:
             if step['travel_mode'] == 'TRANSIT':
                 transit_type = step['transit_details']['line']['vehicle']['type'].lower()
                 if transit_type not in transit_modes:
                     transit_modes.append(transit_type)
-    else:
-        commute_time = "Unable to determine commute time"
-
-    # Get commute time
-    commute_url = f"https://maps.googleapis.com/maps/api/directions/json?origin={start_lat},{start_lng}&destination={end_postcode}&mode=transit&key={api_key}"
-    commute_response = requests.get(commute_url).json()
-
-    if commute_response['status'] == 'OK':
-        commute_time = commute_response['routes'][0]['legs'][0]['duration']['text']
     else:
         commute_time = "Unable to determine commute time"
 
@@ -70,7 +65,7 @@ def get_commute_and_stations(start_postcode, end_postcode, api_key):
             distance_to_school = get_distance_between_points(start_lat, start_lng, school_lat, school_lng, api_key)
             primary_schools.append((school_name, distance_to_school))
 
-    return commute_time, stations, primary_schools
+    return commute_time, stations, primary_schools, transit_modes
 
 def main():
     st.title('Commute and Nearby Places Info')
