@@ -18,23 +18,24 @@ def get_distance_between_points(start_lat, start_lng, end_lat, end_lng, api_key)
     return None
 
 def get_commute_and_stations(start_postcode, end_postcode, api_key):
+    # Convert start postcode to latitude and longitude
     start_lat, start_lng = get_lat_lng_from_postcode(start_postcode, api_key)
     if not start_lat or not start_lng:
-        return "Unable to determine location for start postcode", [], None, None, None
+        return "Unable to determine location for start postcode", [], None, None
 
+    # Get commute time
     commute_url = f"https://maps.googleapis.com/maps/api/directions/json?origin={start_lat},{start_lng}&destination={end_postcode}&mode=transit&key={api_key}"
     commute_response = requests.get(commute_url).json()
 
     if commute_response['status'] == 'OK':
         commute_time = commute_response['routes'][0]['legs'][0]['duration']['text']
-        steps = commute_response['routes'][0]['legs'][0]['steps']
-        num_transports = sum(1 for step in steps if step['travel_mode'] == 'TRANSIT')
     else:
         commute_time = "Unable to determine commute time"
-        num_transports = None
 
+    # Get all train stations within the radius of the start location
     station_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={start_lat},{start_lng}&radius=3000&type=train_station&key={api_key}"
     station_response = requests.get(station_url).json()
+
     stations = []
     if station_response['status'] == 'OK':
         for station in station_response['results']:
@@ -44,8 +45,10 @@ def get_commute_and_stations(start_postcode, end_postcode, api_key):
             distance_to_station = get_distance_between_points(start_lat, start_lng, station_lat, station_lng, api_key)
             stations.append((station_name, distance_to_station))
 
+    # Get all primary schools within the radius of the start location
     school_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={start_lat},{start_lng}&radius=1000&type=school&key={api_key}&keyword=primary"
     school_response = requests.get(school_url).json()
+
     primary_schools = []
     if school_response['status'] == 'OK':
         for school in school_response['results']:
@@ -55,7 +58,7 @@ def get_commute_and_stations(start_postcode, end_postcode, api_key):
             distance_to_school = get_distance_between_points(start_lat, start_lng, school_lat, school_lng, api_key)
             primary_schools.append((school_name, distance_to_school))
 
-    return commute_time, stations, primary_schools, num_transports
+    return commute_time, stations, primary_schools
 
 def main():
     st.title('Commute and Nearby Places Info')
@@ -70,22 +73,13 @@ def main():
         commute_time, stations, primary_schools = get_commute_and_stations(start_postcode, end_postcode, api_key)
 
         st.write(f"**Commute time:** {commute_time}")
-
-        # Display train stations within the radius using a table
         st.write("**Train stations within the radius:**")
-        if stations:
-            stations_df = pd.DataFrame(stations, columns=["Station Name", "Distance"])
-            st.table(stations_df)
-        else:
-            st.write("No train stations found within the radius.")
+        for station_name, distance in stations:
+            st.write(f"{station_name} - {distance}")
 
-        # Display primary schools within the radius using a table
         st.write("**Primary schools within the radius:**")
-        if primary_schools:
-            primary_schools_df = pd.DataFrame(primary_schools, columns=["School Name", "Distance"])
-            st.table(primary_schools_df)
-        else:
-            st.write("No primary schools found within the radius.")
+        for school_name, distance in primary_schools:
+            st.write(f"{school_name} - {distance}")
 
 if __name__ == "__main__":
     main()
