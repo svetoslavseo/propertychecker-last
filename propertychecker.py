@@ -67,7 +67,7 @@ def main():
     end_postcode = st.text_input("Enter End Postcode:", "SW1W 0DT")
 
     # Fetch the API key from Streamlit secrets
-    api_key = st.secrets["google_maps_api_key"]
+    api_key = st.secrets["google_maps_api_key"]["value"]
 
     if st.button('Get Info'):
         commute_time, stations, primary_schools = get_commute_and_stations(start_postcode, end_postcode, api_key)
