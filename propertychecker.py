@@ -1,4 +1,3 @@
-!pip install streamlit
 import requests
 import streamlit as st
 
