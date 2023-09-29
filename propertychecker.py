@@ -40,7 +40,7 @@ def get_commute_and_stations(start_postcode, end_postcode, api_key):
         commute_time = "Unable to determine commute time"
 
     # Get all train stations within the radius of the start location
-    station_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={start_lat},{start_lng}&radius=3000&type=train_station&key={api_key}"
+    station_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={start_lat},{start_lng}&radius=2000&type=train_station&key={api_key}"
     station_response = requests.get(station_url).json()
 
     stations = []
@@ -53,7 +53,7 @@ def get_commute_and_stations(start_postcode, end_postcode, api_key):
             stations.append((station_name, distance_to_station))
 
     # Get all primary schools within the radius of the start location
-    school_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={start_lat},{start_lng}&radius=1000&type=school&key={api_key}&keyword=primary"
+    school_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={start_lat},{start_lng}&radius=2000&type=school&key={api_key}&keyword=primary"
     school_response = requests.get(school_url).json()
 
     primary_schools = []
