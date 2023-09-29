@@ -65,18 +65,26 @@ def main():
 
     api_key = st.secrets["google_maps_api_key"]["value"]
 
-    if st.button('Get Info'):
-        commute_time, stations, primary_schools, num_transports = get_commute_and_stations(start_postcode, end_postcode, api_key)
+    if st.button('Check'):
+        commute_time, stations, primary_schools = get_commute_and_stations(start_postcode, end_postcode, api_key)
 
         st.write(f"**Commute time:** {commute_time}")
-        if num_transports is not None:
-            st.write(f"**Number of public transports:** {num_transports}")
+
+        # Display train stations within the radius using a table
         st.write("**Train stations within the radius:**")
-        for station_name, distance in stations:
-            st.write(f"{station_name} - {distance}")
+        if stations:
+            stations_df = pd.DataFrame(stations, columns=["Station Name", "Distance"])
+            st.table(stations_df)
+        else:
+            st.write("No train stations found within the radius.")
+
+        # Display primary schools within the radius using a table
         st.write("**Primary schools within the radius:**")
-        for school_name, distance in primary_schools:
-            st.write(f"{school_name} - {distance}")
+        if primary_schools:
+            primary_schools_df = pd.DataFrame(primary_schools, columns=["School Name", "Distance"])
+            st.table(primary_schools_df)
+        else:
+            st.write("No primary schools found within the radius.")
 
 if __name__ == "__main__":
     main()
